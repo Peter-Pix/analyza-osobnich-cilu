@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktivní Přehled Cílů</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs/lib/anime.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#f59e0b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Gradient pozadí pro sekci Hero */
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        /* Efekt záře pro karty se statistikami */
+        .glow-card {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        }
+        /* Styl pro progress ring (nepoužito v této verzi, ale ponecháno) */
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        /* Fade-in animace (přepsáno anime.js) */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        /* Hover efekt pro karty kategorií */
+        .category-card {
+            transition: all 0.3s ease;
+        }
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        /* Časová osa milníků (vertikální čára) */
+        .milestone-timeline {
+            position: relative;
+        }
+        .milestone-timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #6366f1, #f59e0b);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigace -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i data-feather="compass" class="text-primary w-8 h-8 mr-3"></i>
+                    <span class="text-xl font-bold text-gray-800">Přehled Cílů</span>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#overview" class="text-gray-600 hover:text-primary transition-colors">Přehled</a>
+                    <a href="#categories" class="text-gray-600 hover:text-primary transition-colors">Kategorie</a>
+                    <a href="#milestones" class="text-gray-600 hover:text-primary transition-colors">Milníky</a>
+                    <a href="#success" class="text-gray-600 hover:text-primary transition-colors">Úspěšnost</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sekce Hero -->
+    <section class="gradient-bg text-white py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-5xl font-bold mb-6">50 Nejčastějších Snů a Cílů</h1>
+                <p class="text-xl mb-8 opacity-90">Přehled pro rok 2024-2025</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Přehled Statistik -->
+    <section id="overview" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                <div class="bg-primary text-white p-6 rounded-xl text-center glow-card" title="Průměrné procento dosažených cílů">
+                    <i data-feather="trending-up" class="w-12 h-12 mx-auto mb-4"></i>
+                    <h3 class="text-2xl font-bold">9%</h3>
+                    <p class="opacity-90">Úspěšnost</p>
+                </div>
+                <div class="bg-secondary text-white p-6 rounded-xl text-center glow-card" title="Procento cílů, které byly opuštěny do konce února">
+                    <i data-feather="calendar" class="w-12 h-12 mx-auto mb-4"></i>
+                    <h3 class="text-2xl font-bold">80%</h3>
+                    <p class="opacity-90">Opuštěno do února</p>
+                </div>
+                <div class="bg-purple-500 text-white p-6 rounded-xl text-center glow-card" title="Procento lidí, kteří po roce cítí, že dosáhli úspěchu">
+                    <i data-feather="target" class="w-12 h-12 mx-auto mb-4"></i>
+                    <h3 class="text-2xl font-bold">55%</h3>
+                    <p class="opacity-90">Cítí se úspěšní po 1 roce</p>
+                </div>
+                <div class="bg-green-500 text-white p-6 rounded-xl text-center glow-card" title="Počet nejpodrobnějších cílů v tomto přehledu">
+                    <i data-feather="users" class="w-12 h-12 mx-auto mb-4"></i>
+                    <h3 class="text-2xl font-bold">10</h3>
+                    <p class="opacity-90">Nejčastějších Cílů Detailně</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rozdělení Kategorií -->
+    <section id="categories" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Rozdělení kategorií cílů</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Zdraví a kondice -->
+                <div class="category-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center mb-4">
+                        <i data-feather="heart" class="text-red-500 w-6 h-6 mr-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Zdraví a kondice</h3>
+                    </div>
+                    <div class="text-3xl font-bold text-primary mb-2">79%</div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span>Zhubnout / Dostlat se do formy</span>
+                            <span class="font-semibold">52%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Pravidelně cvičit</span>
+                            <span class="font-semibold">48%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Jíst zdravěji</span>
+                            <span class="font-semibold">45%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Finance -->
+                <div class="category-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center mb-4">
+                        <i data-feather="dollar-sign" class="text-green-500 w-6 h-6 mr-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Finance</h3>
+                    </div>
+                    <div class="text-3xl font-bold text-secondary mb-2">48%</div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span>Více spořit</span>
+                            <span class="font-semibold">38%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Více vydělávat</span>
+                            <span class="font-semibold">32%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Zbavit se dluhů</span>
+                            <span class="font-semibold">24%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kariéra a vzdělávání -->
+                <div class="category-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center mb-4">
+                        <i data-feather="briefcase" class="text-blue-500 w-6 h-6 mr-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Kariéra a vzdělávání</h3>
+                    </div>
+                    <div class="text-3xl font-bold text-purple-500 mb-2">42%</div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span>Naučit se novou dovednost</span>
+                            <span class="font-semibold">35%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Najít lepší práci</span>
+                            <span class="font-semibold">31%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Naučit se nový jazyk</span>
+                            <span class="font-semibold">26%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Osobní rozvoj -->
+                <div class="category-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center mb-4">
+                        <i data-feather="user" class="text-indigo-500 w-6 h-6 mr-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Osobní rozvoj</h3>
+                    </div>
+                    <div class="text-3xl font-bold text-pink-500 mb-2">38%</div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span>Být šťastnější</span>
+                            <span class="font-semibold">67%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Zvýšit sebevědomí</span>
+                            <span class="font-semibold">31%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Přestat prokrastinovat</span>
+                            <span class="font-semibold">28%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vztahy -->
+                <div class="category-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center mb-4">
+                        <i data-feather="users" class="text-teal-500 w-6 h-6 mr-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Vztahy</h3>
+                    </div>
+                    <div class="text-3xl font-bold text-orange-500 mb-2">35%</div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span>Více času s rodinou</span>
+                            <span class="font-semibold">41%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Najít partnera</span>
+                            <span class="font-semibold">29%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Být lepším rodičem</span>
+                            <span class="font-semibold">24%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zábava a dobrodružství -->
+                <div class="category-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="flex items-center mb-4">
+                        <i data-feather="globe" class="text-cyan-500 w-6 h-6 mr-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-800">Zábava a dobrodružství</h3>
+                    </div>
+                    <div class="text-3xl font-bold text-yellow-500 mb-2">25%</div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span>Více cestovat</span>
+                            <span class="font-semibold">34%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Navštívit seznam přání (Bucket List)</span>
+                            <span class="font-semibold">29%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Naučit se nový sport</span>
+                            <span class="font-semibold">23%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Graf Míry Úspěšnosti -->
+    <section id="success" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Analýza míry úspěšnosti</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Statistiky dosažení cílů</h3>
+                    <canvas id="successChart" width="400" height="300"></canvas>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Důvody selhání</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center" title="Lidé neměli jasně definované kroky k cíli">
+                            <div class="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
+                            <span class="text-sm">Žádný konkrétní plán</span>
+                            <span class="ml-auto font-semibold text-red-600">78%</span>
+                        </div>
+                        <div class="flex items-center" title="Cíle byly příliš ambiciózní vzhledem k možnostem">
+                            <div class="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
+                            <span class="text-sm">Nerealistická očekávání</span>
+                            <span class="ml-auto font-semibold text-orange-600">65%</span>
+                        </div>
+                        <div class="flex items-center" title="Vzdali to po prvním nebo opakovaném neúspěchu">
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
+                            <span class="text-sm">Ztráta motivace po neúspěchu</span>
+                            <span class="ml-auto font-semibold text-yellow-600">71%</span>
+                        </div>
+                        <div class="flex items-center" title="Cíl nebyl rozdělen na menší, zvladatelné kroky">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                            <span class="text-sm">Příliš velký cíl</span>
+                            <span class="ml-auto font-semibold text-green-600">62%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sekce Milníky -->
+    <section id="milestones" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Podrobné milníky pro 5 nejčastějších cílů</h2>
+            
+            <!-- Kontejner pro zobrazení milníků -->
+            <div id="milestone-detail" class="bg-white rounded-xl p-6 mb-8 shadow-lg">
+                <!-- Zde bude dynamicky načtený obsah podle vybraného tlačítka -->
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800">1. Zhubnout / Dostlat se do formy</h3>
+                        <p class="text-gray-600">Míra úspěšnosti: 19 % | Průměrná doba: 6-12 měsíců</p>
+                    </div>
+                </div>
+                <div class="milestone-timeline pl-10">
+                    <div class="mb-6 relative">
+                        <div class="absolute -left-10 mt-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center" title="Milník 1">
+                        <span class="text-white font-bold">1</span>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">Fáze základu (1-2. týden)</h4>
+                        <ul class="text-gray-600 space-y-1 text-sm">
+                            <li title="Váha, míry, fotografie pro sledování pokroku">• Změřit počáteční stav (váha, míry, fotografie)</li>
+                            <li title="Použití kalkulačky celkového denního energetického výdeje (TDEE)">• Vypočítat bazální metabolismus (TDEE kalkulačka)</li>
+                            <li title="Stanovení realistického cíle (0,5-1kg týdně)">• Stanovit realistický cíl ($-0,5-1$ kg týdně)</li>
+                        </ul>
+                    </div>
+                    <div class="mb-6 relative">
+                        <div class="absolute -left-10 mt-1 w-8 h-8 bg-secondary rounded-full flex items-center justify-center" title="Milník 2">
+                        <span class="text-white font-bold">2</span>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">Tvorba návyků (1. měsíc)</h4>
+                        <ul class="text-gray-600 space-y-1 text-sm">
+                            <li title="Zapisování všeho snědeného jídla">• Zaznamenávat jídlo po dobu 7 dnů</li>
+                            <li title="Najít si jídla, která si oblíbíte">• Najít 3 zdravé recepty, které vás baví</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selektor cílů -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                <button onclick="showMilestone(1, this)" class="goal-btn bg-primary text-white py-3 px-4 rounded-lg text-sm font-medium transition-all hover:bg-primary-600 active:scale-95">Zhubnout</button>
+                <button onclick="showMilestone(2, this)" class="goal-btn bg-gray-200 text-gray-700 py-3 px-4 rounded-lg text-sm font-medium transition-all hover:bg-gray-300 active:scale-95">Být šťastnější</button>
+                <button onclick="showMilestone(3, this)" class="goal-btn bg-gray-200 text-gray-700 py-3 px-4 rounded-lg text-sm font-medium transition-all hover:bg-gray-300 active:scale-95">Čas s rodinou</button>
+                <button onclick="showMilestone(4, this)" class="goal-btn bg-gray-200 text-gray-700 py-3 px-4 rounded-lg text-sm font-medium transition-all hover:bg-gray-300 active:scale-95">Šetřit peníze</button>
+                <button onclick="showMilestone(5, this)" class="goal-btn bg-gray-200 text-gray-700 py-3 px-4 rounded-lg text-sm font-medium transition-all hover:bg-gray-300 active:scale-95">Naučit se jazyk</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Patička -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <p class="mb-4 text-sm">Webová stránka je vytvořena na základě ověřených statistik</p><p class="text-sm text-gray-600">by Petr Piskáček</p>
+                <div class="flex justify-center space-x-4">
+
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Data pro dynamické zobrazení milníků (přeložené do češtiny)
+        const allMilestones = {
+            1: {
+                title: "1. Zhubnout / Dostlat se do formy",
+                subtitle: "Míra úspěšnosti: 19 % | Průměrná doba: 6-12 měsíců",
+                milestones: [
+                    { title: "Fáze základu (1-2. týden)", tasks: ["Změřit počáteční stav (váha, míry, fotografie)", "Vypočítat bazální metabolismus (TDEE kalkulačka)", "Stanovit realistický cíl ($-0,5-1$ kg týdně)"] },
+                    { title: "Tvorba návyků (1. měsíc)", tasks: ["Zaznamenávat jídlo po dobu 7 dnů", "Najít 3 zdravé recepty, které vás baví"] }
+                    // Další milníky by mohly následovat
+                ]
+            },
+            2: {
+                title: "2. Být šťastnější",
+                subtitle: "Míra úspěšnosti: 31 % | Průměrná doba: Nekonečno, ale první zlepšení do 3 měsíců",
+                milestones: [
+                    { title: "Definice štěstí (1. týden)", tasks: ["Identifikovat 3 věci, které vám dělají radost", "Zavést deník vděčnosti (5 minut denně)"] },
+                    { title: "Změna perspektivy (1. měsíc)", tasks: ["Začít s meditací (10 minut denně)", "Omezit sociální sítě na 30 minut denně"] }
+                ]
+            },
+            3: {
+                title: "3. Více času s rodinou",
+                subtitle: "Míra úspěšnosti: 45 % | Průměrná doba: Stálé úsilí",
+                milestones: [
+                    { title: "Audit času (1. týden)", tasks: ["Zapsat, kolik času trávíte s rodinou denně/týdně", "Identifikovat časové zloděje (např. práce po večerech)"] },
+                    { title: "Plánování (1. měsíc)", tasks: ["Zablokovat v kalendáři 2x týdně 'rodinný čas'", "Zavést 'večery bez telefonu' 1x týdně"] }
+                ]
+            },
+            4: {
+                title: "4. Šetřit peníze",
+                subtitle: "Míra úspěšnosti: 25 % | Průměrná doba: 6-18 měsíců",
+                milestones: [
+                    { title: "Finanční inventura (1. týden)", tasks: ["Zaznamenat všechny příjmy a výdaje za poslední měsíc", "Stanovit realistickou částku úspor měsíčně"] },
+                    { title: "Optimalizace nákladů (1. měsíc)", tasks: ["Zrušit 2 nepotřebná předplatná", "Zavést pravidlo '48 hodin' pro drahé nákupy"] }
+                ]
+            },
+            5: {
+                title: "5. Naučit se nový jazyk",
+                subtitle: "Míra úspěšnosti: 15 % | Průměrná doba: 12-24 měsíců k plynulosti",
+                milestones: [
+                    { title: "Základní výbava (1. týden)", tasks: ["Vybrat si 1 online kurz / aplikaci (např. Duolingo)", "Naučit se 50 nejpoužívanějších slov"] },
+                    { title: "Pravidelný režim (1. měsíc)", tasks: ["Cvičit 20 minut denně, 5x týdně", "Najít si 1 krátké video/podcast v cílovém jazyce s titulky"] }
+                ]
+            }
+        };
+
+        // Funkce pro inicializaci grafů a efektů
+        document.addEventListener('DOMContentLoaded', function() {
+            // Nahradit ikony Feather
+            feather.replace();
+            
+            // Graf Míry Úspěšnosti
+            const ctx = document.getElementById('successChart').getContext('2d');
+            const successChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Cíle přiblížení', 'Cíle vyhnutí', 'S podporou', 'Bez plánu', 'Se SMART plánem'],
+                    datasets: [{
+                        label: 'Míra úspěšnosti (%)',
+                        data: [58.9, 47.1, 65, 10, 38],
+                        backgroundColor: [
+                            '#6366f1', // Primary
+                            '#f59e0b', // Secondary
+                            '#10b981', // Green
+                            '#ef4444', // Red
+                            '#8b5cf6'  // Purple
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Animace pro karty kategorií
+            anime({
+                targets: '.category-card',
+                opacity: [0, 1],
+                translateY: [20, 0],
+                delay: anime.stagger(100)
+            });
+            
+            // Funkce pro zobrazení detailu milníku
+            window.showMilestone = function(goalNumber, clickedButton) {
+                const detailContainer = document.getElementById('milestone-detail');
+                const goalData = allMilestones[goalNumber];
+
+                if (!goalData) {
+                    detailContainer.innerHTML = '<p class="text-center text-gray-500 py-10">Pro tento cíl nejsou k dispozici žádné milníky.</p>';
+                    return;
+                }
+                
+                // Sestavení nového HTML obsahu
+                let htmlContent = `
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800">${goalData.title}</h3>
+                            <p class="text-gray-600">${goalData.subtitle}</p>
+                        </div>
+                    </div>
+                    <div class="milestone-timeline pl-10">
+                `;
+
+                goalData.milestones.forEach((milestone, index) => {
+                    htmlContent += `
+                        <div class="mb-6 relative">
+                            <div class="absolute -left-10 mt-1 w-8 h-8 ${index % 2 === 0 ? 'bg-primary' : 'bg-secondary'} rounded-full flex items-center justify-center" title="Milník ${index + 1}">
+                            <span class="text-white font-bold">${index + 1}</span>
+                            </div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-2">${milestone.title}</h4>
+                            <ul class="text-gray-600 space-y-1 text-sm">
+                                ${milestone.tasks.map(task => `<li>• ${task}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                });
+
+                htmlContent += '</div>';
+
+                // Aktualizace obsahu a spuštění animace
+                detailContainer.innerHTML = htmlContent;
+                anime({
+                    targets: '#milestone-detail',
+                    opacity: [0, 1],
+                    translateY: [10, 0],
+                    duration: 500
+                });
+
+
+                // Reset všech tlačítek
+                document.querySelectorAll('.goal-btn').forEach(btn => {
+                    btn.classList.remove('bg-primary', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-700');
+                });
+
+                // Aktivace kliknutého tlačítka
+                if(clickedButton) {
+                    clickedButton.classList.remove('bg-gray-200', 'text-gray-700');
+                    clickedButton.classList.add('bg-primary', 'text-white');
+                }
+            }
+            
+            // Načtení výchozího milníku při startu
+            showMilestone(1, document.querySelector('.goal-btn'));
+        });
+    </script>
+</body>
+</html>
